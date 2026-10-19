@@ -1,0 +1,32 @@
+{
+  "messageID": "6661252082",
+  "messageNumber": 3,
+  "messageHash": "66:3:UJANIUJANI",
+  "recipient": "+27829551155",
+  "message": "Ujani",
+  "status": "Stored"
+}
+{
+  "messageID": "1064894944",
+  "messageNumber": 1,
+  "messageHash": "10:1:VUYELWAVUYELWA",
+  "recipient": "+27824879993",
+  "message": "vuyelwa",
+  "status": "Stored"
+}
+{
+  "messageID": "3715745401",
+  "messageNumber": 3,
+  "messageHash": "37:3:SENDLATER",
+  "recipient": "+27821234567",
+  "message": "Send me later",
+  "status": "Stored"
+}
+{
+  "messageID": "1234567890",
+  "messageNumber": 1,
+  "messageHash": "12:1:HEHI\"",
+  "recipient": "+27821234567",
+  "message": "He said \"hi\"",
+  "status": "Stored"
+}
