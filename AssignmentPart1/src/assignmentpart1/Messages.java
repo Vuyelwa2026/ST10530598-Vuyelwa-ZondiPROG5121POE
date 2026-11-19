@@ -44,6 +44,18 @@ public class Messages {
     public String getMessageHash() { return messageHash; }
     public String getMessageStatus() { return messageStatus; }
 
+    // ADDED: access to the arrays (needed by StoredMessages and the unit tests)
+    public static ArrayList<Messages> getSentMessages() { return sentMessages; }
+
+    public static ArrayList<Messages> getDisregardedMessages() { return disregardedMessages; }
+
+    // ADDED: clears the arrays so every unit test starts clean
+    public static void resetForTesting() {
+        sentMessages.clear();
+        disregardedMessages.clear();
+        totalMessages = 0;
+    }
+
     // Keeps message numbering going after loading stored messages
     public static void setMessageCounterAtLeast(int number) {
         if (number > messageCounter) {

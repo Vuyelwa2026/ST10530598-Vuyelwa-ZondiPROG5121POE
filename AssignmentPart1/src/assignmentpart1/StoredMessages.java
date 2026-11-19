@@ -21,6 +21,13 @@ public class StoredMessages {
 
     private static final String JSON_FILE = "messages.json";
 
+    // ADDED: sent + stored messages together (used by the search/longest options)
+    private static ArrayList<Messages> allMessages() {
+        ArrayList<Messages> all = new ArrayList<>(Messages.getSentMessages());
+        all.addAll(storedMessages);
+        return all;
+    }
+
     // Add a stored message
     public static void addStoredMessage(Messages msg) {
 
@@ -154,7 +161,7 @@ public class StoredMessages {
                     break;
 
                 case 5:
-                    deleteMessageByHash(input);
+                    deleteStoredMessage(input);
                     break;
 
                 case 6:
@@ -184,13 +191,13 @@ public class StoredMessages {
         }
     }
 
-    // Option 2
+    // Option 2  (CHANGED: searches sent + stored)
     public static void searchMessageByID(Scanner input) {
 
         System.out.print("Enter message ID: ");
         String id = input.nextLine();
 
-        for (Messages msg : storedMessages) {
+        for (Messages msg : allMessages()) {
 
             if (msg.getMessageID().equals(id)) {
 
@@ -202,7 +209,7 @@ public class StoredMessages {
         System.out.println("Message not found.");
     }
 
-    // Option 3
+    // Option 3  (CHANGED: searches sent + stored)
     public static void searchMessagesByRecipient(Scanner input) {
 
         System.out.print("Enter recipient cellphone number: ");
@@ -210,7 +217,7 @@ public class StoredMessages {
 
         boolean found = false;
 
-        for (Messages msg : storedMessages) {
+        for (Messages msg : allMessages()) {
 
             if (msg.getRecipient().equals(recipient)) {
 
@@ -224,60 +231,64 @@ public class StoredMessages {
         }
     }
 
-    // Option 4
+    // Option 4  (CHANGED: searches sent + stored)
     public static void displayLongestMessage() {
 
-        if (storedMessages.isEmpty()) {
-            System.out.println("No stored messages available.");
+        ArrayList<Messages> all = allMessages();
+
+        if (all.isEmpty()) {
+            System.out.println("No messages available.");
             return;
         }
 
-        Messages longest = storedMessages.get(0);
+        Messages longest = all.get(0);
 
-        for (Messages msg : storedMessages) {
+        for (Messages msg : all) {
 
             if (msg.getMessage().length() > longest.getMessage().length()) {
                 longest = msg;
             }
         }
 
-        System.out.println("Longest stored message:");
+        System.out.println("Longest message:");
         Messages.displayMessage(longest);
     }
 
-    // Option 5
-    public static void deleteMessageByHash(Scanner input) {
+    // Option 5  (CHANGED: prints the deleted message text)
+    public static void deleteStoredMessage(Scanner input) {
 
         System.out.print("Enter the message hash to delete: ");
         String hash = input.nextLine();
 
-        boolean removed = storedMessages.removeIf(
-                msg -> msg.getMessageHash().equals(hash)
-        );
+        for (Messages msg : storedMessages) {
 
-        if (removed) {
+            if (msg.getMessageHash().equals(hash)) {
 
-            saveToJSON();
+                storedMessages.remove(msg);
 
-            System.out.println("Message successfully deleted.");
+                saveToJSON();
 
-        } else {
-
-            System.out.println("Message hash not found.");
+                System.out.println("Message: \"" + msg.getMessage() + "\" successfully deleted.");
+                return;
+            }
         }
+
+        System.out.println("Message hash not found.");
     }
 
-    // Option 6
+    // Option 6  (CHANGED: report covers sent + stored messages)
     public static void displayFullReport() {
 
-        if (storedMessages.isEmpty()) {
-            System.out.println("No stored messages available.");
+        ArrayList<Messages> all = allMessages();
+
+        if (all.isEmpty()) {
+            System.out.println("No messages available.");
             return;
         }
 
         System.out.println("\n========== FULL MESSAGE REPORT ==========");
 
-        for (Messages msg : storedMessages) {
+        for (Messages msg : all) {
 
             System.out.println("\nSender: You");
             System.out.println("Recipient: " + msg.getRecipient());
@@ -287,7 +298,133 @@ public class StoredMessages {
             System.out.println("Status: " + msg.getMessageStatus());
         }
 
-        System.out.println("\nTotal stored messages: " + storedMessages.size());
+        System.out.println("\nTotal messages: " + all.size());
+    }
+
+    // =====================================================================
+    // ADDED: instance (array-based) version used by StoredMessagesUnitTest.
+    // The static methods above are untouched, so the QuickChat app still works.
+    // =====================================================================
+    private final ArrayList<String> ids = new ArrayList<>();
+    private final ArrayList<String> senders = new ArrayList<>();
+    private final ArrayList<String> recipients = new ArrayList<>();
+    private final ArrayList<String> texts = new ArrayList<>();
+    private final ArrayList<String> hashes = new ArrayList<>();
+
+    public StoredMessages(String[] messageIDs, String[] messageSenders,
+                          String[] messageRecipients, String[] messageTexts,
+                          String[] messageHashes, int count) {
+        for (int i = 0; i < count; i++) {
+            ids.add(messageIDs[i]);
+            senders.add(messageSenders[i]);
+            recipients.add(messageRecipients[i]);
+            texts.add(messageTexts[i]);
+            hashes.add(messageHashes[i]);
+        }
+    }
+
+    private void printEntry(int i) {
+        System.out.println("Message ID: " + ids.get(i));
+        System.out.println("Message Hash: " + hashes.get(i));
+        System.out.println("Sender: " + senders.get(i));
+        System.out.println("Recipient: " + recipients.get(i));
+        System.out.println("Message: " + texts.get(i));
+    }
+
+    // Messages array populated: shows sender, recipient and message
+    public void displayStoredSendersAndRecipients() {
+        for (int i = 0; i < texts.size(); i++) {
+            System.out.println("\n--- Stored Message " + (i + 1) + " ---");
+            System.out.println("Sender: " + senders.get(i));
+            System.out.println("Recipient: " + recipients.get(i));
+            System.out.println("Message: " + texts.get(i));
+        }
+    }
+
+    // Longest message
+    public String getLongestStoredMessage() {
+        if (texts.isEmpty()) {
+            System.out.println("No stored messages available.");
+            return null;
+        }
+
+        int longest = 0;
+        for (int i = 1; i < texts.size(); i++) {
+            if (texts.get(i).length() > texts.get(longest).length()) {
+                longest = i;
+            }
+        }
+
+        System.out.println("\nLongest Stored Message:");
+        printEntry(longest);
+        return texts.get(longest);
+    }
+
+    // Search by message ID
+    public void searchByMessageID(Scanner input) {
+        System.out.print("Enter message ID: ");
+        String id = input.nextLine().trim();
+
+        for (int i = 0; i < ids.size(); i++) {
+            if (ids.get(i).equals(id)) {
+                System.out.println("Message found!");
+                printEntry(i);
+                return;
+            }
+        }
+        System.out.println("Message ID not found.");
+    }
+
+    // Search all messages for a recipient
+    public void searchByRecipient(Scanner input) {
+        System.out.print("Enter recipient cellphone number: ");
+        String recipient = input.nextLine().trim();
+
+        boolean found = false;
+        for (int i = 0; i < recipients.size(); i++) {
+            if (recipients.get(i).equals(recipient)) {
+                printEntry(i);
+                found = true;
+            }
+        }
+        if (!found) {
+            System.out.println("No messages found for this recipient.");
+        }
+    }
+
+    // Delete by message hash
+    public void deleteMessageByHash(Scanner input) {
+        System.out.print("Enter the message hash to delete: ");
+        String hash = input.nextLine().trim();
+
+        for (int i = 0; i < hashes.size(); i++) {
+            if (hashes.get(i).equals(hash)) {
+                System.out.println("Message found!");
+                System.out.println("Message: " + texts.get(i));
+
+                ids.remove(i);
+                senders.remove(i);
+                recipients.remove(i);
+                texts.remove(i);
+                hashes.remove(i);
+
+                System.out.println("Message successfully deleted!");
+                return;
+            }
+        }
+        System.out.println("Message hash not found.");
+    }
+
+    // Report: hash, recipient, message (plus sender and ID)
+    public void displayFullMessageReport() {
+        System.out.println("\n========== FULL MESSAGE REPORT ==========");
+
+        for (int i = 0; i < texts.size(); i++) {
+            System.out.println();
+            printEntry(i);
+        }
+
+        System.out.println("\nTotal Stored Messages: " + texts.size());
     }
 
     // Access stored messages
