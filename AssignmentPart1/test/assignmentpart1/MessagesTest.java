@@ -119,34 +119,6 @@ public class MessagesTest {
         }
     }
 
-    // ---------- escapeJSON ----------
-
-    @Test
-    public void testEscapeJSON_plainText() {
-        assertEquals("Hello world", Messages.escapeJSON("Hello world"));
-    }
-
-    @Test
-    public void testEscapeJSON_quotes() {
-        assertEquals("He said \\\"hi\\\"", Messages.escapeJSON("He said \"hi\""));
-    }
-
-    @Test
-    public void testEscapeJSON_backslash() {
-        assertEquals("C:\\\\temp", Messages.escapeJSON("C:\\temp"));
-    }
-
-    @Test
-    public void testEscapeJSON_controlCharacters() {
-        assertEquals("line1\\nline2\\ttab\\rreturn",
-                Messages.escapeJSON("line1\nline2\ttab\rreturn"));
-    }
-
-    @Test
-    public void testEscapeJSON_emptyString() {
-        assertEquals("", Messages.escapeJSON(""));
-    }
-
     // ---------- readPositiveNumber ----------
 
     @Test
@@ -256,15 +228,18 @@ public class MessagesTest {
         assertTrue(out.contains("Status: Sent"));
     }
 
-    // ---------- storeMessage ----------
+    // ---------- getters ----------
 
     @Test
-    public void testStoreMessage_reportsSuccess() {
+    public void testGetters_returnConstructorValues() {
         Messages msg = new Messages("1234567890", 1, "+27821234567",
-                "He said \"hi\"", "12:1:HEHI\"", "Stored");
-        Messages.storeMessage(msg);
-        assertTrue(output().contains("Message successfully stored."));
-        assertTrue(new File("messages.json").exists());
+                "Hello world", "12:1:HELLOWORLD", "Stored");
+        assertEquals("1234567890", msg.getMessageID());
+        assertEquals(1, msg.getMessageNumber());
+        assertEquals("+27821234567", msg.getRecipient());
+        assertEquals("Hello world", msg.getMessage());
+        assertEquals("12:1:HELLOWORLD", msg.getMessageHash());
+        assertEquals("Stored", msg.getMessageStatus());
     }
 
     // ---------- returnTotalMessages ----------

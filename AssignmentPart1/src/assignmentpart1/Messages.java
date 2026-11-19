@@ -4,8 +4,6 @@
  */
 package assignmentpart1;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
@@ -17,16 +15,15 @@ public class Messages {
     private String message;
     private String messageHash;
     private String messageStatus;
-    
+
     // Global fields for tracking state
     private static int messageCounter = 0;
     private static Random random = new Random();
-    
+
     // Collections
     private static ArrayList<Messages> sentMessages = new ArrayList<>();
     private static ArrayList<Messages> disregardedMessages = new ArrayList<>();
-    private static ArrayList<Messages> storedMessages = new ArrayList<>();
-    
+
     private static int totalMessages = 0;
 
     // Constructor
@@ -38,22 +35,40 @@ public class Messages {
         this.messageHash = messageHash;
         this.messageStatus = messageStatus;
     }
-  
+
+    // Getters (used by StoredMessages)
+    public String getMessageID() { return messageID; }
+    public int getMessageNumber() { return messageNumber; }
+    public String getRecipient() { return recipient; }
+    public String getMessage() { return message; }
+    public String getMessageHash() { return messageHash; }
+    public String getMessageStatus() { return messageStatus; }
+
+    // Keeps message numbering going after loading stored messages
+    public static void setMessageCounterAtLeast(int number) {
+        if (number > messageCounter) {
+            messageCounter = number;
+        }
+    }
+
     // Called from AssignmentPart1 after successful login
     public static void startQuickChatApp(Scanner input, Login userProfile) {
+        StoredMessages.loadFromJSON();
+
         int option = 0;
-        
-        while (option != 3) {
+
+        while (option != 4) {
             System.out.println("\n=============================");
             System.out.println("          MAIN MENU");
             System.out.println("=============================");
             System.out.println("1. Send Messages");
             System.out.println("2. Show recently sent messages");
-            System.out.println("3. Quit");
+            System.out.println("3. Stored messages");
+            System.out.println("4. Quit");
             System.out.print("Enter your option: ");
 
             while (!input.hasNextInt()) {
-                System.out.println("Invalid input. Please enter a number (1, 2, or 3): ");
+                System.out.println("Invalid input. Please enter a number (1, 2, 3 or 4): ");
                 input.next();
             }
             option = input.nextInt();
@@ -77,6 +92,10 @@ public class Messages {
                     break;
 
                 case 3:
+                    StoredMessages.displayStoredMessagesMenu(input);
+                    break;
+
+                case 4:
                     System.out.println("Thank you for using QuickChat, " + userProfile.getFirstName() + ".");
                     break;
 
@@ -93,10 +112,10 @@ public class Messages {
         System.out.println("\n==========================");
         System.out.println("    Welcome to QuickChat.");
         System.out.println("============================");
-        
+
         System.out.println("How many messages would you like to enter?");
         int count = readPositiveNumber(input);
-        
+
         for (int i = 0; i < count; i++) {
             System.out.println("\n--- Entering Message " + (i + 1) + " of " + count + " ---");
             sendMessage(input);
@@ -178,9 +197,7 @@ public class Messages {
 
             case "2":
                 newMessage.messageStatus = "Stored";
-                storedMessages.add(newMessage);
-
-                storeMessage(newMessage);
+                StoredMessages.addStoredMessage(newMessage);
                 break;
 
             default:
@@ -219,32 +236,5 @@ public class Messages {
         System.out.println("Recipient: " + msg.recipient);
         System.out.println("Message: " + msg.message);
         System.out.println("Status: " + msg.messageStatus);
-    }
-
-    public static void storeMessage(Messages msg) {
-        try (FileWriter writer = new FileWriter("messages.json", true)) {
-            String json = "{\n"
-                    + "  \"messageID\": \"" + escapeJSON(msg.messageID) + "\",\n"
-                    + "  \"messageNumber\": " + msg.messageNumber + ",\n"
-                    + "  \"messageHash\": \"" + escapeJSON(msg.messageHash) + "\",\n"
-                    + "  \"recipient\": \"" + escapeJSON(msg.recipient) + "\",\n"
-                    + "  \"message\": \"" + escapeJSON(msg.message) + "\",\n"
-                    + "  \"status\": \"" + escapeJSON(msg.messageStatus) + "\"\n"
-                    + "}\n";
-
-            writer.write(json);
-            System.out.println("Message successfully stored.");
-
-        } catch (IOException e) {
-            System.out.println("Error storing message: " + e.getMessage());
-        }
-    }
-
-    public static String escapeJSON(String value) {
-        return value.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
     }
 }
